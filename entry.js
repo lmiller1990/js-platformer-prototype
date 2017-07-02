@@ -1,5 +1,6 @@
 const Level = require('./level')
 const plan = require('./simpleLevel')
+const DOMDisplay = require('./domDisplay')
 
 const simpleLevel = new Level(plan)
 
