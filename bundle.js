@@ -49,6 +49,7 @@
 	const DOMDisplay = __webpack_require__(8)
 
 	const simpleLevel = new Level(plan)
+	const display = new DOMDisplay(document.body, simpleLevel)
 
 	console.log(`Created level: ${simpleLevel.width} by ${simpleLevel.height}`)
 
@@ -82,8 +83,9 @@
 	        const ch = line[x]
 	        let fieldType = null
 	        const Actor = actorChars[ch]
+
 	        if (Actor) {
-	          this.actors.push(new Actor(new Vector(x ,y), ch))
+	          this.actors.push(new Actor(new Vector(x, y), ch))
 	        } else if (ch === 'x') {
 	          fieldType = 'wall'
 	        } else if (ch ==='!') {
@@ -99,6 +101,29 @@
 
 	  isFinished () {
 	    return this.status !== null && this.finishDelay < 0
+	  }
+
+	  obstacleAt (pos, size) {
+	    const xStart = Math.floor(pos.x) 
+	    const xEnd = Math.ceil(pos.x + size.x)
+	    const yStart = Math.floor(pos.y)
+	    const yEnd = Math.ceil(pos.y + size.y)
+
+	    if (xStart < 0 || xEnd > this.width || yStart < 0) {
+	      return 'wall' // level bounds, can't leave
+	    }
+	    if (yEnd > this.height) {
+	      return 'lava' // the floor, dead
+	    }
+
+	    for (let y = yStart; y < yEnd; y++) {
+	      for (let x = xStart; x < xEnd; x++) {
+	        const fieldType = this.grid[y][x]
+	        if (fieldType) {
+	          return fieldType
+	        }
+	      }
+	    }
 	  }
 	}
 
@@ -155,8 +180,8 @@
 
 	class Vector {
 	  constructor(x, y) {
-	    this.x = x
-	    this.y = y
+	    this.x = parseFloat(x)
+	    this.y = parseFloat(y)
 	  }
 
 	  plus (other) {
@@ -201,7 +226,7 @@
 	  constructor (pos) {
 	    this.type = 'player'
 
-	    this.pos = pos.plus(new Vector(0, -0.5))
+	    this.pos = pos.plus(new Vector(0, -0.2))
 	    this.size = new Vector(0.8, 1.5)
 	    this.speed = new Vector(0, 0)
 	  }
@@ -237,8 +262,7 @@
 
 	class DOMDisplay {
 	  constructor(parent, level) {
-	    console.log(SCALE)
-	    this.wrap = parent.appendChild(this.elt,('div', 'game'))
+	    this.wrap = parent.appendChild(this.elt('div', 'game'))
 	    this.level = level
 
 	    this.wrap.appendChild(this.drawBackground())
@@ -257,10 +281,11 @@
 	  drawActors () {
 	    const wrap = this.elt('div')
 	    this.level.actors.forEach(actor => {
-	      const rect = wrap.appendChild(elt('div', `actor ${actor.type}`))
-	      rect.style.width = `${actor.size.y * SCALE}px`
-	      rect.style.left = `${actor.pos.x * SCALE}px`
-	      rect.style.top = `${actor.pos.y * SCALE}px`
+	      const rect = this.wrap.appendChild(this.elt('div', `actor ${actor.type}`))
+	      rect.style.width = actor.size.x * SCALE + 'px'
+	      rect.style.height = actor.size.y * SCALE + 'px'
+	      rect.style.left = actor.pos.x * SCALE + 'px'
+	      rect.style.top = actor.pos.y * SCALE + 'px'
 	    })
 	    return wrap
 	  }
@@ -269,14 +294,19 @@
 	    if (this.actorLayer) // check if it is the first time to draw the frame
 	      this.wrap.removeChild(this.actorLayout)
 
-	    this.actorLayout = this.wrap.appendChild(this.drawActor())
+	    this.actorLayout = this.wrap.appendChild(this.drawActors())
 	    this.wrap.className = `game ${this.level.status || ''}`
 
 	    this.scrollPlayerIntoView()
 	  }
 
 	  scrollPlayerIntoView () {
+	    // TODO
+	  }
 
+	  clear () {
+	    // TODO
+	    console.log('TODO')
 	  }
 
 	  drawBackground () {
@@ -284,9 +314,9 @@
 	    table.style.width = `${this.level.width * SCALE}px`  
 	    
 	    this.level.grid.forEach(row => {
-	      const rowElt = table.appendChild(elt('tr'))
-	      rowElt.style.height = `${scale}px`
-	      row.forEach(type => rowElt.appendChild(elt('td', type)))
+	      const rowElt = table.appendChild(this.elt('tr'))
+	      rowElt.style.height = `${SCALE}px`
+	      row.forEach(type => rowElt.appendChild(this.elt('td', type)))
 	    })
 	    return table
 	  }

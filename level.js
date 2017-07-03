@@ -23,8 +23,9 @@ class Level {
         const ch = line[x]
         let fieldType = null
         const Actor = actorChars[ch]
+
         if (Actor) {
-          this.actors.push(new Actor(new Vector(x ,y), ch))
+          this.actors.push(new Actor(new Vector(x, y), ch))
         } else if (ch === 'x') {
           fieldType = 'wall'
         } else if (ch ==='!') {
@@ -40,6 +41,29 @@ class Level {
 
   isFinished () {
     return this.status !== null && this.finishDelay < 0
+  }
+
+  obstacleAt (pos, size) {
+    const xStart = Math.floor(pos.x) 
+    const xEnd = Math.ceil(pos.x + size.x)
+    const yStart = Math.floor(pos.y)
+    const yEnd = Math.ceil(pos.y + size.y)
+
+    if (xStart < 0 || xEnd > this.width || yStart < 0) {
+      return 'wall' // level bounds, can't leave
+    }
+    if (yEnd > this.height) {
+      return 'lava' // the floor, dead
+    }
+
+    for (let y = yStart; y < yEnd; y++) {
+      for (let x = xStart; x < xEnd; x++) {
+        const fieldType = this.grid[y][x]
+        if (fieldType) {
+          return fieldType
+        }
+      }
+    }
   }
 }
 

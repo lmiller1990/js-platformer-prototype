@@ -1,7 +1,7 @@
 class Vector {
   constructor(x, y) {
-    this.x = x
-    this.y = y
+    this.x = parseFloat(x)
+    this.y = parseFloat(y)
   }
 
   plus (other) {
