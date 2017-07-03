@@ -1,3 +1,9 @@
 module.exports = {
-  SCALE: 20
+  SCALE: 20,
+  MAX_STEP: 0.05,
+  PLAYER_X_MOVE_SPEED: 7,
+  PLAYER_JUMP_SPEED: 16,
+  GRAVITY: 30,
+  WOBBLE_SPEED: 5,
+  WOBBLE_DIST: 0.07
 }

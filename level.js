@@ -1,5 +1,6 @@
 const actorChars = require('./actorChars')
 const Vector     = require('./vector')
+const {MAX_STEP} = require('./constants')
 
 class Level {
   constructor(plan) {
@@ -43,6 +44,48 @@ class Level {
     return this.status !== null && this.finishDelay < 0
   }
 
+  animate (step, keys) {
+    if (this.status !== null) {
+      this.finishDelay -= step
+    }
+
+    while (step > 0) {
+      const thisStep = Math.min(step, MAX_STEP)
+      this.actors.forEach(actor => actor.act(thisStep, this, keys))
+      step -= thisStep
+    }
+  } 
+
+  actorAt (actor) {
+    for (let i = 0; i < this.actors.length; i++) {
+      const other = this.actors[i] // iterate each actor
+      if (other !== actor &&
+        actor.pos.x + actor.size.x > other.pos.x &&
+        actor.pos.x < other.pos.x + other.size.x &&
+        actor.pos.y + actor.size.y >  other.pos.y &&
+        actor.pos.y < other.pos.y + other.size.y)
+      {
+        return other;
+      }
+    }
+  }
+
+  collisionLeft (other, actor) {
+    return actor.pos.x < other.pos.x + other.size.x  
+  }
+
+  collisionRight (other, actor) {
+    return actor.pos.x + actor.size.x > other.pos.x
+  }
+
+  collisionAbove (other, actor) {
+    return actor.pos.y + actor.size.y > other.pos.y
+  }
+
+  collisionBelow (other, actor) {
+    return actor.pos.y < other.pos.y + other.size.y
+  }
+
   obstacleAt (pos, size) {
     const xStart = Math.floor(pos.x) 
     const xEnd = Math.ceil(pos.x + size.x)
@@ -62,6 +105,21 @@ class Level {
         if (fieldType) {
           return fieldType
         }
+      }
+    }
+  }
+
+  playerTouched (type, actor) {
+    if (type === 'lava' && this.status === null) {
+      console.log('')
+      this.status = 'lost'
+      this.finishDelay = 1
+    } else if (type === 'coin') {
+      // return all actors except the coin - remove the coin we touched 
+      this.actors = this.actors.filter(other => other !== actor) 
+      if (!this.actors.some(a => a.type === 'coin')) {
+        this.status = 'won'
+        this.finishDelay = 1
       }
     }
   }

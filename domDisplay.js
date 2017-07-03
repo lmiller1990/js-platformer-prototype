@@ -21,7 +21,7 @@ class DOMDisplay {
   drawActors () {
     const wrap = this.elt('div')
     this.level.actors.forEach(actor => {
-      const rect = this.wrap.appendChild(this.elt('div', `actor ${actor.type}`))
+      const rect = wrap.appendChild(this.elt('div', `actor ${actor.type}`))
       rect.style.width = actor.size.x * SCALE + 'px'
       rect.style.height = actor.size.y * SCALE + 'px'
       rect.style.left = actor.pos.x * SCALE + 'px'
@@ -31,22 +31,45 @@ class DOMDisplay {
   }
 
   drawFrame () {
-    if (this.actorLayer) // check if it is the first time to draw the frame
-      this.wrap.removeChild(this.actorLayout)
+    if (this.actorLayer) { // check if it is the first time to draw the frame
+      this.wrap.removeChild(this.actorLayer)
+    }
 
-    this.actorLayout = this.wrap.appendChild(this.drawActors())
+    this.actorLayer = this.wrap.appendChild(this.drawActors())
     this.wrap.className = `game ${this.level.status || ''}`
 
     this.scrollPlayerIntoView()
   }
 
   scrollPlayerIntoView () {
-    // TODO
+    const width = this.wrap.clientWidth
+    const height = this.wrap.clientHeight
+    const margin = width / 3
+
+    // viewport
+    const left = this.wrap.scrollLeft 
+    const right = left + width
+    const top = this.wrap.scrollTop
+    const bottom = top + height
+    
+    const player = this.level.player
+    const center = player.pos.plus(player.size.times(0.5)).times(SCALE)
+
+    if (center.x < left + margin) {
+      this.wrap.scrollLeft = center.x - margin
+    } else if (center.x > right - margin) {
+      this.wrap.scrollLeft = center.x + margin - width 
+    }
+
+    if (center.y < top + margin) {
+      this.wrap.scrollTop = center.y - margin
+    } else if (center.y > bottom - margin) {
+      this.wrap.scrollTop = center.y + margin - height
+    }
   }
 
   clear () {
-    // TODO
-    console.log('TODO')
+    this.wrap.parentNode.removeChild(this.wrap)
   }
 
   drawBackground () {
